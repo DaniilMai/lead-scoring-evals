@@ -35,6 +35,8 @@ jobs:
   llm-eval:
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    # the API key lives as a secret in this deployment environment
+    environment: ANTHROPIC_API_KEY
     permissions:
       contents: write
     steps:
