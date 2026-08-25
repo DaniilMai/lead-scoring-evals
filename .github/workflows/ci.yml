@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      model:
+        description: "Model for the LLM eval"
+        default: "claude-opus-5"
+
+permissions:
+  contents: read
+
+jobs:
+  rules:
+    if: github.event_name != 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Dataset is reproducible
+        run: |
+          python scripts/generate_dataset.py
+          git diff --exit-code data/
+      - name: Rules eval matches committed results
+        run: python evals/run_eval.py --scorer rules --check
+
+  llm-eval:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Run LLM eval
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          EVAL_MODEL: ${{ inputs.model }}
+        run: python evals/run_eval.py --scorer llm --model "$EVAL_MODEL"
+      - name: Commit results
+        env:
+          EVAL_MODEL: ${{ inputs.model }}
+        run: |
+          git config user.name "Danylo Pantielieiev"
+          git config user.email "56109435+DaniilMai@users.noreply.github.com"
+          git add results/
+          git commit -m "Eval results: $EVAL_MODEL" || echo "no changes"
+          git push
