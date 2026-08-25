@@ -1,0 +1,88 @@
+{
+  "scorer": "llm-claude-opus-5",
+  "model": "claude-opus-5",
+  "mean_input_tokens": 940.6,
+  "mean_output_tokens": 297.1,
+  "latency_p50_s": 5.33,
+  "latency_p95_s": 8.81,
+  "cost_per_1000_leads_usd": 12.13,
+  "cost_per_1000_leads_batch_usd": 6.07,
+  "summary": {
+    "n": 300,
+    "accuracy": 0.547,
+    "accuracy_ci95": [
+      0.49,
+      0.602
+    ],
+    "accuracy_by_case": {
+      "clean": {
+        "n": 210,
+        "accuracy": 0.433,
+        "ci95": [
+          0.368,
+          0.501
+        ]
+      },
+      "trap": {
+        "n": 45,
+        "accuracy": 0.756,
+        "ci95": [
+          0.613,
+          0.858
+        ]
+      },
+      "ambiguous": {
+        "n": 45,
+        "accuracy": 0.867,
+        "ci95": [
+          0.738,
+          0.937
+        ]
+      }
+    },
+    "per_grade": {
+      "A": {
+        "precision": 0.917,
+        "recall": 0.206,
+        "f1": 0.336,
+        "support": 107
+      },
+      "B": {
+        "precision": 0.485,
+        "recall": 0.875,
+        "f1": 0.624,
+        "support": 128
+      },
+      "D": {
+        "precision": 0.667,
+        "recall": 0.462,
+        "f1": 0.545,
+        "support": 65
+      }
+    },
+    "confusion": {
+      "A": {
+        "A": 22,
+        "B": 85,
+        "D": 0,
+        "none": 0
+      },
+      "B": {
+        "A": 1,
+        "B": 112,
+        "D": 15,
+        "none": 0
+      },
+      "D": {
+        "A": 1,
+        "B": 34,
+        "D": 30,
+        "none": 0
+      }
+    },
+    "missed_enterprise": 0,
+    "delayed_enterprise": 85,
+    "wasted_priority": 1,
+    "failed_calls": 0
+  }
+}
