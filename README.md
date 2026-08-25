@@ -41,26 +41,48 @@ harness strips them.
 
 ## Results
 
-| Scorer | Overall (95% CI) | Clean | Trap | Ambiguous | Missed¹ | Delayed² | Wasted³ | $/1000 leads |
-|---|---|---|---|---|---|---|---|---|
-| Rules baseline | **80.3%** (75.5–84.4%) | 100% | 6.7% | 62.2% | 7 | 15 | 8 | $0 |
-| LLM — row lands from the first [CI eval run](.github/workflows/ci.yml) | — | — | — | — | — | — | — | — |
+All four scorers, same dataset, same blindfold. LLM rows were produced by the
+CI eval job — measured tokens, measured latency, list prices.
+
+| Scorer | Overall (95% CI) | Clean | Trap | Ambiguous | Missed¹ | Delayed² | Wasted³ | $/1000⁴ | p50 |
+|---|---|---|---|---|---|---|---|---|---|
+| Rules baseline | **80.3%** (75.5–84.4%) | **100%** | 6.7% | 62.2% | 7 | 15 | 8 | $0 | ~0 |
+| claude-haiku-4-5 | 50.7% (45.0–56.3%) | 40.5% | 73.3% | 75.6% | 8 | 74 | 1 | $1.30 | 2.2s |
+| claude-sonnet-5 | 48.7% (43.1–54.3%) | 36.7% | 71.1% | 82.2% | **0** | 95 | **0** | $7.91 | 5.2s |
+| claude-opus-5 | 54.7% (49.0–60.2%) | 43.3% | **75.6%** | **86.7%** | **0** | 85 | 1 | $12.13 | 5.3s |
 
 ¹ true A → predicted D: a priority buyer sent to the thank-you page.
 ² true A → predicted B: a priority buyer parked in the standard queue —
 cheaper per case than a full miss, far more frequent.
 ³ true D → predicted A: junk occupying the priority calendar.
+⁴ list prices, successful calls; the Batch API halves it (haiku $0.65,
+sonnet $3.96, opus $6.07).
 
-The baseline's shape is the whole story so far: **perfect on clean, 6.7% on
-traps**. Of 24 hidden priority buyers, 7 bounced off the thank-you page and
-15 were demoted to the standard queue — the dominant failure is a *slower*
-enterprise funnel, not just a lost one. Meanwhile all 8 wasted-priority slots
-went to vendor pitches wearing senior titles. If the LLM earns its cost
-anywhere, it's the trap column — and whether it does is a number, not an
-argument.
+### What the numbers actually say
 
-Full reports per scorer: [results/rules.md](results/rules.md), plus one
-`results/llm-<model>.md` per model run.
+1. **The failure profiles are opposites.** Rules: perfect on structured
+   fields, 6.7% on traps — every vendor pitch with a senior title got a
+   calendar. LLMs: ~11× better on traps (71–76%) and better on ambiguous
+   (up to 86.7%), with **zero missed-enterprise errors** on sonnet and opus —
+   but they tank the clean segment (37–43%) by refusing to grade A on
+   firmographics alone, parking 74–95 priority buyers in the standard queue.
+   Neither scorer should own the whole pipeline; the honest architecture is
+   the hybrid: rules for structured fields, LLM for the message.
+2. **The eval caught a policy-spec bug, not just model behavior.** The
+   written playbook says "torn between A and B with no urgency evidence,
+   choose B" — and the models obey it *everywhere*, including cases the
+   numeric formula scores as a confident 75+ A. The words and the numbers
+   disagree about what "strong fit without message signal" means, and no one
+   notices that gap until a harness makes both grade the same 300 leads.
+3. **For message-reading, the cheap model is enough.** Haiku's trap accuracy
+   (73.3%) is within the error bars of opus (75.6%) at a ninth of the cost
+   and half the latency. The expensive models buy fewer catastrophic errors
+   (0 missed enterprise), not better text comprehension.
+
+Full reports per scorer: [results/rules.md](results/rules.md),
+[llm-claude-haiku-4-5.md](results/llm-claude-haiku-4-5.md),
+[llm-claude-sonnet-5.md](results/llm-claude-sonnet-5.md),
+[llm-claude-opus-5.md](results/llm-claude-opus-5.md).
 
 ## Reading the numbers honestly
 
